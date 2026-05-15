@@ -35,13 +35,6 @@ jobs:
       - name: Compilar proyecto
         run: npm run build
 
-      - name: Subir artefacto de build
-        uses: actions/upload-artifact@v4
-        with:
-          name: cloudflare-build
-          path: .svelte-kit
-          retention-days: 1
-
   deploy:
     name: Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
@@ -60,11 +53,8 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: Descargar artefacto de build
-        uses: actions/download-artifact@v4
-        with:
-          name: cloudflare-build
-          path: .svelte-kit
+      - name: Compilar proyecto
+        run: npm run build
 
       - name: Desplegar a Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
