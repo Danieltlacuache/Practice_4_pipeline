@@ -1,8 +1,8 @@
-# Pipeline CI/CD para SvelteKit + Cloudflare Pages
+# Pipeline CI/CD para SvelteKit + Cloudflare Workers
 #
 # Secretos requeridos en GitHub Repository Settings > Secrets:
 #   - CLOUDFLARE_ACCOUNT_ID: ID de la cuenta de Cloudflare
-#   - CLOUDFLARE_API_TOKEN: Token API con permisos de Cloudflare Pages Edit
+#   - CLOUDFLARE_API_TOKEN: Token API con permisos de Workers Scripts Edit
 
 name: CI/CD Pipeline
 
@@ -39,24 +39,36 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cloudflare-build
-          path: .svelte-kit/cloudflare
+          path: .svelte-kit
           retention-days: 1
 
   deploy:
-    name: Deploy to Cloudflare Pages
+    name: Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
     needs: build-test
 
     steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
       - name: Descargar artefacto de build
         uses: actions/download-artifact@v4
         with:
           name: cloudflare-build
-          path: ./deploy-output
+          path: .svelte-kit
 
-      - name: Desplegar a Cloudflare Pages
+      - name: Desplegar a Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./deploy-output --project-name=practice--pipeline
+          command: deploy
